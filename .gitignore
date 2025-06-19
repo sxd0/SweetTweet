@@ -1,0 +1,64 @@
+# ===== GO =====
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Кеш go build
+*.a
+
+# Кеш Go modules
+vendor/
+
+# Go coverage
+*.coverprofile
+*.cov
+
+# ===== PROTO =====
+# Сгенерированные файлы из proto
+*.pb.go
+*.pb.gw.go
+*.swagger.json
+
+# ===== Docker =====
+# Игнор временных docker файлов
+*.tar
+*.img
+
+# ===== IDE =====
+# VSCode
+.vscode/
+
+# Goland / IntelliJ
+.idea/
+
+# ===== Logs =====
+*.log
+logs/
+log/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== Env =====
+.env
+.env.*
+
+# ===== Misc =====
+# Кеши
+.cache/
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# ===== Kubernetes / CI/CD =====
+# временные манифесты
+deployments/tmp/
