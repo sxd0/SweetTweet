@@ -1,10 +1,10 @@
 package logger
 
 import (
-	"go.uber.org/zap"
+	"log/slog"
+	"os"
 )
 
-func NewLogger() *zap.Logger {
-	logger, _ := zap.NewProduction()
-	return logger
+func NewLogger() *slog.Logger {
+	return slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
