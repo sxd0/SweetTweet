@@ -33,6 +33,11 @@ func main() {
 		w.Write([]byte("pong"))
 	}))
 	mux.Handle("/register", registerHandler)
+	
+	loginService := service.NewLoginService(repo)
+	loginHandler := handler.NewLoginHandler(loginService)
+	mux.Handle("/login", loginHandler)
+
 
 	log.Info("Auth service starting", "port", cfg.Port)
 	err = http.ListenAndServe(fmt.Sprintf(":%s", cfg.Port), mux)

@@ -18,3 +18,17 @@ func (r *UserRepository) Create(user *model.User) error {
 	_, err := r.DB.Exec(query, user.Email, user.PasswordHash)
 	return err
 }
+
+
+func (r *UserRepository) GetByEmail(email string) (*model.User, error) {
+	query := "SELECT id, email, password_hash FROM users WHERE email = $1"
+	row := r.DB.QueryRow(query, email)
+
+	var user model.User
+	err := row.Scan(&user.ID, &user.Email, &user.PasswordHash)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
