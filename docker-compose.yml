@@ -1,0 +1,28 @@
+services:
+  auth:
+    extends:
+      file: deployments/docker-compose.yml
+      service: auth
+    env_file:
+      - .env
+    networks:
+      - sweettweet
+
+  db:
+    extends:
+      file: deployments/docker-compose.yml
+      service: db
+    env_file:
+      - .env
+    networks:
+      - sweettweet
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./deployments/initdb:/docker-entrypoint-initdb.d
+
+volumes:
+  pgdata:
+
+networks:
+  sweettweet:
+    external: false
