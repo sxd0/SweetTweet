@@ -4,23 +4,23 @@ import (
 	"fmt"
 	"net/http"
 
-	"Go-pet/internal/pkg/config"
-	"Go-pet/internal/pkg/logger"
+	"github.com/sxd0/SweetTweet/pkg/config"
+	"github.com/sxd0/SweetTweet/pkg/logger"
 )
 
 func main() {
 	cfg := config.Load()
 	log := logger.NewLogger()
-	defer log.Sync()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("pong"))
 	})
 
-	log.Info("Auth service starting", zap.String("port", cfg.Port))
+	log.Info("Auth service starting", "port", cfg.Port)
+
 	err := http.ListenAndServe(fmt.Sprintf(":%s", cfg.Port), mux)
 	if err != nil {
-		log.Fatal("Server failed to start", zap.Error(err))
+		log.Error("Server failed to start", "error", err)
 	}
 }
