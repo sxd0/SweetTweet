@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:16
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d
+    networks:
+      - sweettweet
+
+  auth:
+    build:
+      context: ../
+      dockerfile: cmd/auth/Dockerfile
+    container_name: auth
+    depends_on:
+      - db
+    ports:
+      - "8081:8081"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      AUTH_SERVICE_PORT: 8081
+    networks:
+      - sweettweet
+
+volumes:
+  pgdata:
+
+networks:
+  sweettweet:
