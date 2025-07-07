@@ -25,6 +25,17 @@ services:
     networks:
       - backend
 
+  redis:
+    image: redis:7.2
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - backend
+
+
   user:
     build:
       context: ..
@@ -32,6 +43,7 @@ services:
     command: /app/cmd/user/user
     depends_on:
       - mongo
+      - redis
     environment:
       - MONGO_URI=mongodb://mongo:27017
     networks:
@@ -60,6 +72,7 @@ services:
 volumes:
   pgdata:
   mongo-data:
+  redis-data:
 
 networks:
   sweettweet:
