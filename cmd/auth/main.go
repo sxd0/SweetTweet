@@ -1,68 +1,54 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
+    "fmt"
+    "log"
+    "net"
+    "os"
 
-	"github.com/sxd0/SweetTweet/pkg/config"
-	"github.com/sxd0/SweetTweet/pkg/db"
-	"github.com/sxd0/SweetTweet/pkg/logger"
+    "google.golang.org/grpc"
+    "google.golang.org/grpc/reflection"
 
-	"github.com/sxd0/SweetTweet/internal/auth/handler"
-	"github.com/sxd0/SweetTweet/internal/auth/middleware"
-	"github.com/sxd0/SweetTweet/internal/auth/repository"
-	"github.com/sxd0/SweetTweet/internal/auth/service"
-
-	httpSwagger "github.com/swaggo/http-swagger"
-	_ "github.com/sxd0/SweetTweet/docs"
+    "github.com/sxd0/SweetTweet/internal/auth/repository"
+    "github.com/sxd0/SweetTweet/internal/auth/service"
+    pb "github.com/sxd0/SweetTweet/proto/authpb"
+    "github.com/sxd0/SweetTweet/pkg/config"
+    "github.com/sxd0/SweetTweet/pkg/db"
+    "github.com/sxd0/SweetTweet/pkg/logger"
 )
 
-// @title Auth Service API
-// @version 1.0
-// @description SweetTweet
-// @host localhost:8081
-// @BasePath /
-
-// @securityDefinitions.apikey BearerAuth
-// @in header
-// @name Authorization
-
 func main() {
-	cfg := config.Load()
-	log := logger.NewLogger()
+    cfg := config.Load()
+    logg := logger.NewLogger()
 
-	database, err := db.Connect()
-	if err != nil {
-		log.Error("DB connection failed", "error", err)
-		return
-	}
-	log.Info("Connected to DB")
+    database, err := db.Connect()
+    if err != nil {
+        logg.Error("DB connection failed", "error", err)
+        return
+    }
+    logg.Info("Connected to DB")
 
-	repo := repository.NewUserRepository(database)
-	svc := service.NewRegisterService(repo)
-	registerHandler := handler.NewRegisterHandler(svc)
+    jwtSecret := os.Getenv("JWT_SECRET")
+    if jwtSecret == "" {
+        log.Fatal("JWT_SECRET not set")
+    }
 
-	mux := http.NewServeMux()
-	mux.Handle("/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("pong"))
-	}))
-	mux.Handle("/register", registerHandler)
+    repo := repository.NewUserRepository(database)
+    authSvc := service.NewAuthService(repo, jwtSecret)
 
-	loginService := service.NewLoginService(repo)
-	loginHandler := handler.NewLoginHandler(loginService)
-	mux.Handle("/login", loginHandler)
-	
-	mux.Handle("/debug-token", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		auth := r.Header.Get("Authorization")
-		w.Header().Set("Content-Type", "text/plain")
-		w.Write([]byte("Authorization: " + auth))
-	}))
-	mux.Handle("/me", middleware.JWTMiddleware(http.HandlerFunc(handler.MeHandler)))
-	mux.Handle("/swagger/", httpSwagger.WrapHandler)
+    lis, err := net.Listen("tcp", fmt.Sprintf(":%s", cfg.Port))
+    if err != nil {
+        logg.Error("Failed to listen", "error", err)
+        return
+    }
 
-	log.Info("Auth service starting", "port", cfg.Port)
-	err = http.ListenAndServe(fmt.Sprintf(":%s", cfg.Port), mux)
-	if err != nil {
-		log.Error("Server failed to start", "error", err)
-	}
+    grpcServer := grpc.NewServer()
+    pb.RegisterAuthServiceServer(grpcServer, authSvc)
+
+    reflection.Register(grpcServer)
+
+    logg.Info("Auth gRPC service running", "port", cfg.Port)
+    if err := grpcServer.Serve(lis); err != nil {
+        logg.Error("gRPC server error", "error", err)
+    }
 }
