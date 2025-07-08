@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "proto/userpb";
+
+message ProfileRequest {
+  int64 user_id = 1;
+}
+
+message Profile {
+  string id = 1;
+  int64 user_id = 2;
+  string username = 3;
+  string bio = 4;
+  int64 created_at = 5;
+  int64 updated_at = 6;
+}
+
+message CreateProfileRequest {
+  int64 user_id = 1;
+  string username = 2;
+  string bio = 3;
+}
+
+message UpdateProfileRequest {
+  int64 user_id = 1;
+  string bio = 2;
+}
+
+service UserService {
+  rpc CreateProfile(CreateProfileRequest) returns (Profile);
+  rpc GetProfile(ProfileRequest) returns (Profile);
+  rpc UpdateProfile(UpdateProfileRequest) returns (Profile);
+}

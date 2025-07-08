@@ -1,46 +1,50 @@
 package main
 
 import (
-	"context"
-	"log"
-	"os"
+    "context"
+    "log"
+    "net"
+    "os"
 
-	"github.com/gin-gonic/gin"
-	"github.com/sxd0/SweetTweet/internal/user/cache"
-	"github.com/sxd0/SweetTweet/internal/user/handler"
-	"github.com/sxd0/SweetTweet/internal/user/repository"
-	"github.com/sxd0/SweetTweet/internal/user/service"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"google.golang.org/grpc/reflection"
+    "google.golang.org/grpc"
+    "github.com/sxd0/SweetTweet/internal/user/handler"
+    "github.com/sxd0/SweetTweet/internal/user/repository"
+    "github.com/sxd0/SweetTweet/internal/user/service"
+    pb "github.com/sxd0/SweetTweet/proto/userpb"
+    "go.mongodb.org/mongo-driver/mongo"
+    "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
-	ctx := context.Background()
+    ctx := context.Background()
 
-	mongoURI := os.Getenv("MONGO_URI")
-	if mongoURI == "" {
-		mongoURI = "mongodb://localhost:27017"
-	}
-	mongoClient, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
-	if err != nil {
-		log.Fatal("Mongo error:", err)
-	}
+    mongoURI := os.Getenv("MONGO_URI")
+    if mongoURI == "" {
+        mongoURI = "mongodb://localhost:27017"
+    }
 
-	redisAddr := os.Getenv("REDIS_ADDR")
-	if redisAddr == "" {
-		redisAddr = "localhost:6379"
-	}
-	redisCache := cache.NewCache(redisAddr)
+    client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
+    if err != nil {
+        log.Fatalf("Mongo connect error: %v", err)
+    }
 
-	repo := repository.NewProfileRepository(mongoClient)
-	svc := service.NewProfileService(repo, redisCache)
-	h := handler.NewProfileHandler(svc)
+    repo := repository.NewProfileRepository(client)
+    svc := service.NewProfileService(repo)
+    grpcHandler := handler.NewGRPCHandler(svc)
 
-	r := gin.Default()
-	h.RegisterRoutes(r)
+    lis, err := net.Listen("tcp", ":8082")
+    if err != nil {
+        log.Fatalf("Failed to listen: %v", err)
+    }
 
-	log.Println("User service running on :8082")
-	if err := r.Run(":8082"); err != nil {
-		log.Fatal("Server error:", err)
+	grpcServer := grpc.NewServer()
+	pb.RegisterUserServiceServer(grpcServer, grpcHandler)
+
+	reflection.Register(grpcServer)
+
+	log.Println("gRPC UserService running on :8082")
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatalf("Failed to serve: %v", err)
 	}
 }
