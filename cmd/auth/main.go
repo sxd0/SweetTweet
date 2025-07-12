@@ -30,7 +30,8 @@ func main() {
 
     jwtSecret := os.Getenv("JWT_SECRET")
     if jwtSecret == "" {
-        log.Fatal("JWT_SECRET not set")
+        jwtSecret = "supersecret"
+        log.Println("[WARN] JWT_SECRET not set, fallback to", jwtSecret)
     }
 
     repo := repository.NewUserRepository(database)

@@ -15,7 +15,8 @@ var UserClient userpb.UserServiceClient
 func InitUserClient() {
 	addr := os.Getenv("USER_SERVICE_ADDR")
 	if addr == "" {
-		log.Fatal("USER_SERVICE_ADDR not set")
+		addr = "user:8082"
+		log.Println("[WARN] USER_SERVICE_ADDR not set, fallback to", addr)
 	}
 
 	conn, err := grpc.Dial(addr, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second))

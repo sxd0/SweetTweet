@@ -15,7 +15,8 @@ var AuthClient authpb.AuthServiceClient
 func InitAuthClient() {
 	addr := os.Getenv("AUTH_SERVICE_ADDR")
 	if addr == "" {
-		log.Fatal("AUTH_SERVICE_ADDR not set")
+		addr = "auth:8081"
+		log.Println("[WARN] AUTH_SERVICE_ADDR not set, fallback to", addr)
 	}
 
 	conn, err := grpc.Dial(addr, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second))

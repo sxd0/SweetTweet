@@ -63,12 +63,12 @@ services:
     env_file:
       - ../.env
     environment:
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
-      - JWT_SECRET=${JWT_SECRET}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      JWT_SECRET: ${JWT_SECRET}
     networks:
       - backend
     ports:
@@ -85,10 +85,10 @@ services:
     env_file:
       - ../.env
     environment:
-      - AUTH_SERVICE_ADDR=${AUTH_SERVICE_ADDR}
-      - USER_SERVICE_ADDR=${USER_SERVICE_ADDR}
-      - GIN_PORT=${GIN_PORT}
-      - JWT_SECRET=${JWT_SECRET}
+      AUTH_SERVICE_ADDR: ${AUTH_SERVICE_ADDR}
+      USER_SERVICE_ADDR: ${USER_SERVICE_ADDR}
+      GIN_PORT: ${GIN_PORT}
+      JWT_SECRET: ${JWT_SECRET}
     ports:
       - "8080:8080"
     networks:
