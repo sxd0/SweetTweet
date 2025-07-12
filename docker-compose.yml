@@ -8,6 +8,24 @@ services:
     networks:
       - sweettweet
 
+  user:
+    extends:
+      file: deployments/docker-compose.yml
+      service: user
+    env_file:
+      - .env
+    networks:
+      - sweettweet
+
+  api:
+    extends:
+      file: deployments/docker-compose.yml
+      service: api
+    env_file:
+      - .env
+    networks:
+      - sweettweet
+
   db:
     extends:
       file: deployments/docker-compose.yml
@@ -20,9 +38,22 @@ services:
       - pgdata:/var/lib/postgresql/data
       - ./deployments/initdb:/docker-entrypoint-initdb.d
 
+  mongo:
+    extends:
+      file: deployments/docker-compose.yml
+      service: mongo
+    networks:
+      - sweettweet
+
+  redis:
+    extends:
+      file: deployments/docker-compose.yml
+      service: redis
+    networks:
+      - sweettweet
+
 volumes:
   pgdata:
 
 networks:
   sweettweet:
-    external: false
